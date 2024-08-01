@@ -1,0 +1,969 @@
+> #### Package installation and data upload ####
+> install.packages("alr3")
+Warning in install.packages :
+  cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/src/contrib/PACKAGES.rds': HTTP status was '404 Not Found'
+Installing package into ‘C:/Users/kg398/OneDrive/Documents/R/win-library/3.4’
+(as ‘lib’ is unspecified)
+Warning in install.packages :
+  cannot open URL 'http://www.stats.ox.ac.uk/pub/RWin/bin/windows/contrib/3.4/PACKAGES.rds': HTTP status was '404 Not Found'
+trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.4/alr3_2.0.5.zip'
+Content type 'application/zip' length 596668 bytes (582 KB)
+downloaded 582 KB
+
+package ‘alr3’ successfully unpacked and MD5 sums checked
+
+The downloaded binary packages are in
+	C:\Users\kg398\AppData\Local\Temp\RtmpMB3QZ6\downloaded_packages
+> library(alr3)
+Loading required package: car
+Warning messages:
+1: package ‘alr3’ was built under R version 3.4.3 
+2: package ‘car’ was built under R version 3.4.2 
+> install.packages("readr")
+Installing package into ‘C:/Users/kg398/OneDrive/Documents/R/win-library/3.4’
+(as ‘lib’ is unspecified)
+trying URL 'https://cran.rstudio.com/bin/windows/contrib/3.4/readr_1.1.1.zip'
+Content type 'application/zip' length 1272357 bytes (1.2 MB)
+downloaded 1.2 MB
+
+package ‘readr’ successfully unpacked and MD5 sums checked
+
+The downloaded binary packages are in
+	C:\Users\kg398\AppData\Local\Temp\RtmpMB3QZ6\downloaded_packages
+> library(readr)
+Warning message:
+package ‘readr’ was built under R version 3.4.3 
+> library(car)
+> bb <- read_delim("C:/Users/kg398/Desktop/Linear Regression 5345/Project/Ball Bearing/ballbearing.txt","\t", escape_double = FALSE, trim_ws = TRUE)
+Parsed with column specification:
+cols(
+  Company = col_integer(),
+  `Test number` = col_integer(),
+  `Year of test` = col_integer(),
+  `No. of bearings` = col_integer(),
+  `Load (P)` = col_integer(),
+  `No. of balls (Z)` = col_integer(),
+  `Diameter (D)` = col_double(),
+  L10 = col_double(),
+  L50 = col_double(),
+  `Weibull slope` = col_double(),
+  `Bearing type` = col_integer()
+)
+> View(bb)
+> dim(bb)
+[1] 210  11
+> colnames(bb)
+ [1] "Company"          "Test number"      "Year of test"     "No. of bearings" 
+ [5] "Load (P)"         "No. of balls (Z)" "Diameter (D)"     "L10"             
+ [9] "L50"              "Weibull slope"    "Bearing type"    
+> 
+> #### Variable Names #####
+> L10 = bb$L10
+> P = bb$'Load (P)'
+> Z = bb$'No. of balls (Z)'
+> D = bb$'Diameter (D)'
+> 
+> ########################### 
+> # Article Analysis
+> ###########################
+> # Initial model (or model 2)
+> lnL10 = log(L10)
+> lnP = log(P)
+> lnZ = log(Z)
+> lnD = log(D)
+> bb.lm = lm(lnL10 ~ lnZ + lnD + lnP)
+> summary(bb.lm)
+
+Call:
+lm(formula = lnL10 ~ lnZ + lnD + lnP)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2.41289 -0.43477  0.03229  0.44726  1.86353 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  19.5613     1.4645  13.357  < 2e-16 ***
+lnZ           1.4490     0.3749   3.865 0.000149 ***
+lnD           3.8236     0.3916   9.765  < 2e-16 ***
+lnP          -2.2471     0.1864 -12.053  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.69 on 206 degrees of freedom
+Multiple R-squared:  0.4545,	Adjusted R-squared:  0.4466 
+F-statistic: 57.22 on 3 and 206 DF,  p-value: < 2.2e-16
+
+> anova(bb.lm)
+Analysis of Variance Table
+
+Response: lnL10
+           Df Sum Sq Mean Sq  F value    Pr(>F)    
+lnZ         1  1.587   1.587   3.3336   0.06933 .  
+lnD         1 10.978  10.978  23.0567 3.022e-06 ***
+lnP         1 69.163  69.163 145.2629 < 2.2e-16 ***
+Residuals 206 98.081   0.476                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> rst.lm = rstudent(bb.lm)
+> fit.lm = fitted(bb.lm)
+> pureErrorAnova(bb.lm)
+Analysis of Variance Table
+
+Response: lnL10
+              Df Sum Sq Mean Sq  F value    Pr(>F)    
+lnZ            1  1.587   1.587   4.9064 0.0289170 *  
+lnD            1 10.978  10.978  33.9353 6.301e-08 ***
+lnP            1 69.163  69.163 213.8004 < 2.2e-16 ***
+Residuals    206 98.081   0.476                       
+ Lack of fit 101 64.114   0.635   1.9623 0.0003508 ***
+ Pure Error  105 33.967   0.323                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> 
+> # Initial model weighted
+> N = bb$'No. of bearings'
+> bb.lm.w = lm(lnL10 ~ lnZ + lnD + lnP, weights = N)
+> summary(bb.lm.w)
+
+Call:
+lm(formula = lnL10 ~ lnZ + lnD + lnP, weights = N)
+
+Weighted Residuals:
+   Min     1Q Median     3Q    Max 
+-7.956 -2.202  0.059  1.957 10.661 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  20.4329     1.3190  15.491  < 2e-16 ***
+lnZ           2.1611     0.3659   5.906 1.43e-08 ***
+lnD           4.3322     0.3600  12.034  < 2e-16 ***
+lnP          -2.5115     0.1672 -15.025  < 2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.279 on 206 degrees of freedom
+Multiple R-squared:  0.5508,	Adjusted R-squared:  0.5442 
+F-statistic: 84.19 on 3 and 206 DF,  p-value: < 2.2e-16
+
+> anova(bb.lm.w)
+Analysis of Variance Table
+
+Response: lnL10
+           Df  Sum Sq Mean Sq  F value    Pr(>F)    
+lnZ         1    0.82    0.82   0.0764    0.7825    
+lnD         1  287.55  287.55  26.7379 5.502e-07 ***
+lnP         1 2427.78 2427.78 225.7473 < 2.2e-16 ***
+Residuals 206 2215.41   10.75                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> cook.lm.w = cooks.distance(bb.lm.w)
+> plot(cook.lm.w, ylab = "Cook's distances", main = "Cook's Distances: Same parameters for each company: Weighted")
+> rst.lm.w = rstudent(bb.lm.w)
+> fit.lm.w = fitted(bb.lm.w)
+> par(mfrow=c(1,2))
+> plot(fit.lm, rst.lm, xlab = "Fitted: Unweighted", ylab = "Externally Studentized Residuals")
+> abline(0,0)
+> plot(fit.lm.w, rst.lm.w, xlab = "Fitted: Weighted", ylab = "Externally Studentized Residuals")
+> abline(0,0)
+> qqnorm(rst.lm.w, main = "Normal Probability Plot: Same parameters for each company: Wieghted")
+> qqline(rst.lm.w)
+> pureErrorAnova(bb.lm.w)
+Analysis of Variance Table
+
+Response: lnL10
+              Df  Sum Sq Mean Sq  F value    Pr(>F)    
+lnZ            1    0.82    0.82   0.1151 0.7350549    
+lnD            1  287.55  287.55  40.3061  5.64e-09 ***
+lnP            1 2427.78 2427.78 340.3038 < 2.2e-16 ***
+Residuals    206 2215.41   10.75                       
+ Lack of fit 101 1466.32   14.52   2.0350 0.0001795 ***
+ Pure Error  105  749.08    7.13                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> 
+> #Adding indicator and interaction variables (full model or model 1)
+> B = ifelse(bb$Company==2,1,0)
+> C = ifelse(bb$Company==3,1,0)
+> BlnZ = B*lnZ
+> BlnD = B*lnD
+> BlnP = B*lnP
+> ClnP = C*lnP
+> ClnZ = C*lnZ
+> ClnD = C*lnD
+> bb.lmfull = lm(lnL10 ~ lnZ + lnD + lnP + B + C + BlnZ + BlnD + BlnP + ClnZ + ClnD + ClnP, weights = N)
+> summary(bb.lmfull)
+
+Call:
+lm(formula = lnL10 ~ lnZ + lnD + lnP + B + C + BlnZ + BlnD + 
+    BlnP + ClnZ + ClnD + ClnP, weights = N)
+
+Weighted Residuals:
+    Min      1Q  Median      3Q     Max 
+-8.2686 -2.0230  0.0308  1.7236  9.6884 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  26.8505     3.3231   8.080 6.27e-14 ***
+lnZ           1.1577     1.2181   0.950    0.343    
+lnD           5.1646     0.6381   8.093 5.77e-14 ***
+lnP          -2.9908     0.2940 -10.174  < 2e-16 ***
+B            -3.1904     3.8987  -0.818    0.414    
+C             1.7921     5.9996   0.299    0.765    
+BlnZ          0.6804     1.2834   0.530    0.597    
+BlnD         -0.1973     0.8252  -0.239    0.811    
+BlnP          0.2331     0.3811   0.612    0.541    
+ClnZ         -1.1759     2.6884  -0.437    0.662    
+ClnD         -0.8365     1.9812  -0.422    0.673    
+ClnP         -0.1430     0.6773  -0.211    0.833    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.134 on 198 degrees of freedom
+Multiple R-squared:  0.6057,	Adjusted R-squared:  0.5838 
+F-statistic: 27.65 on 11 and 198 DF,  p-value: < 2.2e-16
+
+> anova(bb.lmfull)
+Analysis of Variance Table
+
+Response: lnL10
+           Df  Sum Sq Mean Sq  F value    Pr(>F)    
+lnZ         1    0.82    0.82   0.0836  0.772734    
+lnD         1  287.55  287.55  29.2796 1.798e-07 ***
+lnP         1 2427.78 2427.78 247.2071 < 2.2e-16 ***
+B           1   85.43   85.43   8.6991  0.003567 ** 
+C           1  160.61  160.61  16.3543 7.523e-05 ***
+BlnZ        1    7.37    7.37   0.7499  0.387543    
+BlnD        1    7.79    7.79   0.7937  0.374079    
+BlnP        1    5.04    5.04   0.5128  0.474762    
+ClnZ        1    0.90    0.90   0.0922  0.761779    
+ClnD        1    3.30    3.30   0.3360  0.562784    
+ClnP        1    0.44    0.44   0.0446  0.833036    
+Residuals 198 1944.52    9.82                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> cook.lmfull = cooks.distance(bb.lmfull)
+> plot(cook.lmfull, ylab = "Cook's distances", main = "Cook's Distances: All parameters free")
+> rst.lmfull = rstudent(bb.lmfull)
+> qqnorm(rst.lmfull, main = "Normal Probability Plot: All parameters free")
+> qqline(rst.lmfull)
+> 
+> #Assuming a Common p (model 3)
+> bb.lmCP = lm(lnL10 ~ lnZ + lnD + lnP + B + C + BlnZ + BlnD + ClnZ + ClnD, weights = N)
+> summary(bb.lmCP)
+
+Call:
+lm(formula = lnL10 ~ lnZ + lnD + lnP + B + C + BlnZ + BlnD + 
+    ClnZ + ClnD, weights = N)
+
+Weighted Residuals:
+    Min      1Q  Median      3Q     Max 
+-8.2917 -2.0301 -0.0146  1.7711  9.1299 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  25.9991     2.8243   9.206   <2e-16 ***
+lnZ           1.0674     1.1998   0.890    0.375    
+lnD           4.9444     0.4521  10.937   <2e-16 ***
+lnP          -2.8763     0.1782 -16.141   <2e-16 ***
+B            -1.4265     2.6254  -0.543    0.587    
+C             1.3577     4.6867   0.290    0.772    
+BlnZ          0.8582     1.2451   0.689    0.491    
+BlnD          0.2670     0.3346   0.798    0.426    
+ClnZ         -1.4748     2.5088  -0.588    0.557    
+ClnD         -0.9198     1.7560  -0.524    0.601    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.123 on 200 degrees of freedom
+Multiple R-squared:  0.6046,	Adjusted R-squared:  0.5868 
+F-statistic: 33.97 on 9 and 200 DF,  p-value: < 2.2e-16
+
+> anova(bb.lmCP)
+Analysis of Variance Table
+
+Response: lnL10
+           Df  Sum Sq Mean Sq  F value    Pr(>F)    
+lnZ         1    0.82    0.82   0.0842  0.771936    
+lnD         1  287.55  287.55  29.4906 1.620e-07 ***
+lnP         1 2427.78 2427.78 248.9888 < 2.2e-16 ***
+B           1   85.43   85.43   8.7618  0.003448 ** 
+C           1  160.61  160.61  16.4722 7.079e-05 ***
+BlnZ        1    7.37    7.37   0.7553  0.385831    
+BlnD        1    7.79    7.79   0.7994  0.372356    
+ClnZ        1    1.42    1.42   0.1454  0.703422    
+ClnD        1    2.67    2.67   0.2743  0.601013    
+Residuals 200 1950.11    9.75                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> cook.lmCP = cooks.distance(bb.lmCP)
+> plot(cook.lmCP, ylab = "Cook's distances", main = "Cook's Distances: Common p")
+> rst.lmCP = rstudent(bb.lmCP)
+> qqnorm(rst.lmCP, main = "Normal Probability Plot: Common P")
+> qqline(rst.lmCP)
+> 
+> #Normal probability plots to check normality assumption
+> par(mfrow = c(1,3))
+> rst.lm.w = rstudent(bb.lm.w)
+> qqnorm(rst.lm.w, main = "Same parameters for each company")
+> qqline(rst.lm.w)
+> rst.lmfull = rstudent(bb.lmfull)
+> qqnorm(rst.lmfull, main = "All parameters free")
+> qqline(rst.lmfull)
+> rst.lmCP = rstudent(bb.lmCP)
+> qqnorm(rst.lmCP, main = "Common P")
+> qqline(rst.lmCP)
+> 
+> #Linear Realtionship between L10 and its regressors
+> par(mfrow = c(1,3))
+> plot(lnZ, lnL10, main = "lnZ v. lnL10")
+> abline(lm(lnL10 ~ lnZ))
+> plot(lnD, lnL10, main = "lnD v. lnL10")
+> abline(lm(lnL10 ~ lnD))
+> plot(lnP, lnL10, main = "lnP v. lnL10")
+> abline(lm(lnL10 ~ lnP))
+> 
+> #Cook's Distance to check for outliers
+> par(mfrow = c(1,3))
+> cook.lm.w = cooks.distance(bb.lm.w)
+> plot(cook.lm.w, ylim = c(0,1), ylab = "Cook's distances", main = "Same parameters for each company")
+> cook.lmfull = cooks.distance(bb.lmfull)
+> plot(cook.lmfull, ylim = c(0,1), ylab = "Cook's distances", main = "All parameters free")
+> cook.lmCP = cooks.distance(bb.lmCP)
+> plot(cook.lmCP, ylim = c(0,1), ylab = "Cook's distances", main = "Common p")
+> 
+> 
+> ################################## 
+> #        Model Building
+> ##################################
+> 
+> #Check explore
+> 
+> #Initial Model L10 ~ Z + D + P
+> bb.lm = lm(L10 ~ Z + D + P)
+> summary(bb.lm)
+
+Call:
+lm(formula = L10 ~ Z + D + P)
+
+Residuals:
+   Min     1Q Median     3Q    Max 
+-33.50 -13.75  -8.23  -0.21 385.15 
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -39.266424  26.581854  -1.477  0.14115    
+Z             3.618477   2.074633   1.744  0.08262 .  
+D           121.429771  37.106557   3.272  0.00125 ** 
+P            -0.011051   0.002715  -4.071 6.68e-05 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 39.54 on 206 degrees of freedom
+Multiple R-squared:  0.08589,	Adjusted R-squared:  0.07258 
+F-statistic: 6.452 on 3 and 206 DF,  p-value: 0.0003396
+
+> anova(bb.lm)
+Analysis of Variance Table
+
+Response: L10
+           Df Sum Sq Mean Sq F value    Pr(>F)    
+Z           1      3     2.9  0.0019   0.96550    
+D           1   4352  4351.9  2.7841   0.09672 .  
+P           1  25900 25900.1 16.5697 6.683e-05 ***
+Residuals 206 322000  1563.1                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> rst.lm = rstudent(bb.lm)
+> par(mfrow = c(1,1))
+> hist(rst.lm)
+> pureErrorAnova(bb.lm)
+Analysis of Variance Table
+
+Response: L10
+              Df Sum Sq Mean Sq F value    Pr(>F)    
+Z              1      3     2.9  0.0108 0.9175666    
+D              1   4352  4351.9 15.9781 0.0001193 ***
+P              1  25900 25900.1 95.0940 < 2.2e-16 ***
+Residuals    206 322000  1563.1                      
+ Lack of fit 101 293402  2905.0 10.6658 < 2.2e-16 ***
+ Pure Error  105  28598   272.4                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> 
+> ####Check Normality###
+> #L10 and some transformations
+> I = 1/L10
+> par(mfrow = c(2,3))
+> hist(L10)
+> hist(lnL10)
+> hist(I, main = "Histogram of 1/L10")
+> qqnorm(L10, main = "Normal Q-Q: L10")
+> qqline(L10)
+> qqnorm(lnL10, main = "Normal Q-Q: lnL10")
+> qqline(lnL10)
+> qqnorm(I, main = "Normal Q-Q: 1/L10")
+> qqline(I)
+> #Z and some transformations
+> I = 1/Z
+> par(mfrow = c(2,3))
+> hist(Z)
+> hist(lnZ)
+> hist(I, main = "Histogram of 1/Z")
+> qqnorm(Z, main = "Normal Q-Q: Z")
+> qqline(Z)
+> qqnorm(lnZ, main = "Normal Q-Q: lnZ")
+> qqline(lnZ)
+> qqnorm(I, main = "Normal Q-Q: 1/Z")
+> qqline(I)
+> #D and some transformations
+> I = 1/D
+> par(mfrow = c(2,3))
+> hist(D)
+> hist(lnD)
+> hist(I, main = "Histogram of 1/D")
+> qqnorm(D, main = "Normal Q-Q: D")
+> qqline(D)
+> qqnorm(lnD, main = "Normal Q-Q: lnD")
+> qqline(lnD)
+> qqnorm(I, main = "Normal Q-Q: 1/D")
+> qqline(I)
+> #P and some transformations
+> I = 1/P
+> par(mfrow = c(2,3))
+> hist(P)
+> hist(lnP)
+> hist(I, main = "Histogram of 1/P")
+> qqnorm(P, main = "Normal Q-Q: P")
+> qqline(P)
+> qqnorm(lnP, main = "Normal Q-Q: lnP")
+> qqline(lnP)
+> qqnorm(I, main = "Normal Q-Q: 1/P")
+> qqline(I)
+> 
+> ####Lack of Fit Test####
+> pureErrorAnova(bb.lm)
+Analysis of Variance Table
+
+Response: L10
+              Df Sum Sq Mean Sq F value    Pr(>F)    
+Z              1      3     2.9  0.0108 0.9175666    
+D              1   4352  4351.9 15.9781 0.0001193 ***
+P              1  25900 25900.1 95.0940 < 2.2e-16 ***
+Residuals    206 322000  1563.1                      
+ Lack of fit 101 293402  2905.0 10.6658 < 2.2e-16 ***
+ Pure Error  105  28598   272.4                      
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> 
+> #### Logarithmic Transformation ####
+> bb.lm = lm(lnL10 ~ lnZ + lnD + lnP)
+> #Check Constant Variance
+> par(mfrow = c(2,2))
+> plot(bb.lm)
+> # Add weights
+> bb.lm = lm(lnL10 ~ lnZ + lnD + lnP, weights = N)
+> #Check correlations
+> scatterplotMatrix(~lnL10+lnZ+lnD+lnP)
+> cor(lnL10, lnZ)
+[1] -0.09395267
+> cor(lnL10, lnD)
+[1] -0.2215023
+> cor(lnL10, lnP)
+[1] -0.4397606
+> cor(lnZ, lnD)
+[1] -0.2123509
+> cor(lnZ, lnP)
+[1] 0.002303693
+> cor(lnD, lnP)
+[1] 0.920909
+> #Check Multicollinearity
+> vif(bb.lm)
+     lnZ      lnD      lnP 
+1.500667 8.123389 7.322690 
+> #plot residuals against regressor variables
+> par(mfrow = c(1,3))
+> plot(lnZ,res.lm)
+> abline(0,0)
+> plot(lnD, res.lm)
+> abline(0,0)
+> plot(lnP, res.lm)
+> abline(0,0)
+> 
+> ####Adding in Company indicators with interactions####
+> bb.lmfull = lm(lnL10 ~ lnZ + lnD + lnP + B + C + BlnZ + BlnD + BlnP + ClnZ + ClnD + ClnP, weights = N)
+> summary(bb.lmfull)
+
+Call:
+lm(formula = lnL10 ~ lnZ + lnD + lnP + B + C + BlnZ + BlnD + 
+    BlnP + ClnZ + ClnD + ClnP, weights = N)
+
+Weighted Residuals:
+    Min      1Q  Median      3Q     Max 
+-8.2686 -2.0230  0.0308  1.7236  9.6884 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  26.8505     3.3231   8.080 6.27e-14 ***
+lnZ           1.1577     1.2181   0.950    0.343    
+lnD           5.1646     0.6381   8.093 5.77e-14 ***
+lnP          -2.9908     0.2940 -10.174  < 2e-16 ***
+B            -3.1904     3.8987  -0.818    0.414    
+C             1.7921     5.9996   0.299    0.765    
+BlnZ          0.6804     1.2834   0.530    0.597    
+BlnD         -0.1973     0.8252  -0.239    0.811    
+BlnP          0.2331     0.3811   0.612    0.541    
+ClnZ         -1.1759     2.6884  -0.437    0.662    
+ClnD         -0.8365     1.9812  -0.422    0.673    
+ClnP         -0.1430     0.6773  -0.211    0.833    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.134 on 198 degrees of freedom
+Multiple R-squared:  0.6057,	Adjusted R-squared:  0.5838 
+F-statistic: 27.65 on 11 and 198 DF,  p-value: < 2.2e-16
+
+> anova(bb.lmfull)
+Analysis of Variance Table
+
+Response: lnL10
+           Df  Sum Sq Mean Sq  F value    Pr(>F)    
+lnZ         1    0.82    0.82   0.0836  0.772734    
+lnD         1  287.55  287.55  29.2796 1.798e-07 ***
+lnP         1 2427.78 2427.78 247.2071 < 2.2e-16 ***
+B           1   85.43   85.43   8.6991  0.003567 ** 
+C           1  160.61  160.61  16.3543 7.523e-05 ***
+BlnZ        1    7.37    7.37   0.7499  0.387543    
+BlnD        1    7.79    7.79   0.7937  0.374079    
+BlnP        1    5.04    5.04   0.5128  0.474762    
+ClnZ        1    0.90    0.90   0.0922  0.761779    
+ClnD        1    3.30    3.30   0.3360  0.562784    
+ClnP        1    0.44    0.44   0.0446  0.833036    
+Residuals 198 1944.52    9.82                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> 
+> #Variable Selection algorithms
+> full = lm(lnL10 ~ lnZ + lnD + lnP + B + C + BlnZ + BlnD + BlnP + ClnZ + ClnD + ClnP, weights = N)
+> null = lm(lnL10 ~ 1)
+> forw = step(null, scope = list(lower = null, upper = full), direction = "forward")
+Start:  AIC=-30.6
+lnL10 ~ 1
+
+       Df Sum of Sq    RSS     AIC
++ lnP   1    34.773 145.03 -73.727
++ lnD   1     8.822 170.99 -39.160
++ BlnD  1     4.394 175.41 -33.791
+<none>              179.81 -30.596
++ lnZ   1     1.587 178.22 -30.457
++ C     1     0.695 179.11 -29.408
++ ClnZ  1     0.553 179.25 -29.243
++ ClnP  1     0.416 179.39 -29.082
++ ClnD  1     0.369 179.44 -29.026
++ BlnP  1     0.193 179.62 -28.821
++ B     1     0.135 179.67 -28.754
++ BlnZ  1     0.048 179.76 -28.652
+
+Step:  AIC=-73.73
+lnL10 ~ lnP
+
+       Df Sum of Sq    RSS      AIC
++ lnD   1    39.842 105.19 -139.175
++ BlnD  1     6.620 138.41  -81.539
++ lnZ   1     1.553 143.48  -73.988
+<none>              145.03  -73.727
++ BlnZ  1     0.923 144.11  -73.068
++ B     1     0.803 144.23  -72.893
++ BlnP  1     0.527 144.51  -72.492
++ ClnD  1     0.042 144.99  -71.788
++ ClnP  1     0.006 145.03  -71.736
++ C     1     0.005 145.03  -71.734
++ ClnZ  1     0.000 145.03  -71.728
+
+Step:  AIC=-139.17
+lnL10 ~ lnP + lnD
+
+       Df Sum of Sq     RSS     AIC
++ ClnP  1    8.2356  96.958 -154.29
++ ClnZ  1    8.0801  97.113 -153.96
++ C     1    7.9516  97.242 -153.68
++ ClnD  1    7.5181  97.675 -152.75
++ lnZ   1    7.1126  98.081 -151.88
++ BlnZ  1    6.1514  99.042 -149.83
++ BlnP  1    5.1535 100.040 -147.72
++ B     1    5.0835 100.110 -147.58
++ BlnD  1    4.2810 100.912 -145.90
+<none>              105.193 -139.18
+
+Step:  AIC=-154.29
+lnL10 ~ lnP + lnD + ClnP
+
+       Df Sum of Sq    RSS     AIC
++ lnZ   1    5.9680 90.990 -165.64
++ BlnZ  1    3.1603 93.797 -159.25
++ BlnP  1    2.5731 94.385 -157.94
++ B     1    2.2377 94.720 -157.20
++ BlnD  1    1.1964 95.761 -154.90
+<none>              96.958 -154.29
++ C     1    0.5284 96.429 -153.44
++ ClnZ  1    0.0589 96.899 -152.42
++ ClnD  1    0.0030 96.955 -152.30
+
+Step:  AIC=-165.64
+lnL10 ~ lnP + lnD + ClnP + lnZ
+
+       Df Sum of Sq    RSS     AIC
++ BlnP  1   0.90583 90.084 -165.74
+<none>              90.990 -165.64
++ BlnZ  1   0.78817 90.202 -165.46
++ B     1   0.75435 90.235 -165.38
++ BlnD  1   0.34381 90.646 -164.43
++ C     1   0.22382 90.766 -164.15
++ ClnZ  1   0.00843 90.981 -163.66
++ ClnD  1   0.00057 90.989 -163.64
+
+Step:  AIC=-165.74
+lnL10 ~ lnP + lnD + ClnP + lnZ + BlnP
+
+       Df Sum of Sq    RSS     AIC
+<none>              90.084 -165.74
++ B     1   0.68290 89.401 -165.34
++ BlnZ  1   0.26435 89.820 -164.35
++ C     1   0.20104 89.883 -164.21
++ BlnD  1   0.08330 90.001 -163.93
++ ClnD  1   0.00610 90.078 -163.75
++ ClnZ  1   0.00301 90.081 -163.74
+> back = step(full, direction = "backward")
+Start:  AIC=491.39
+lnL10 ~ lnZ + lnD + lnP + B + C + BlnZ + BlnD + BlnP + ClnZ + 
+    ClnD + ClnP
+
+       Df Sum of Sq    RSS    AIC
+- ClnP  1      0.44 1945.0 489.44
+- BlnD  1      0.56 1945.1 489.45
+- C     1      0.88 1945.4 489.48
+- ClnD  1      1.75 1946.3 489.58
+- ClnZ  1      1.88 1946.4 489.59
+- BlnZ  1      2.76 1947.3 489.69
+- BlnP  1      3.67 1948.2 489.79
+- B     1      6.58 1951.1 490.10
+- lnZ   1      8.87 1953.4 490.35
+<none>              1944.5 491.39
+- lnD   1    643.30 2587.8 549.41
+- lnP   1   1016.65 2961.2 577.71
+
+Step:  AIC=489.44
+lnL10 ~ lnZ + lnD + lnP + B + C + BlnZ + BlnD + BlnP + ClnZ + 
+    ClnD
+
+       Df Sum of Sq    RSS    AIC
+- C     1      0.45 1945.4 487.49
+- BlnD  1      0.98 1945.9 487.54
+- BlnZ  1      2.61 1947.6 487.72
+- ClnZ  1      2.91 1947.9 487.75
+- ClnD  1      3.30 1948.3 487.79
+- BlnP  1      5.15 1950.1 487.99
+- B     1      7.90 1952.9 488.29
+- lnZ   1      9.26 1954.2 488.43
+<none>              1945.0 489.44
+- lnD   1    770.14 2715.1 557.49
+- lnP   1   1275.23 3220.2 593.32
+
+Step:  AIC=487.49
+lnL10 ~ lnZ + lnD + lnP + B + BlnZ + BlnD + BlnP + ClnZ + ClnD
+
+       Df Sum of Sq    RSS    AIC
+- BlnD  1      1.06 1946.5 485.60
+- ClnD  1      2.88 1948.3 485.80
+- BlnZ  1      4.79 1950.2 486.00
+- BlnP  1      5.52 1950.9 486.08
+- lnZ   1      9.75 1955.2 486.54
+- B     1     11.63 1957.0 486.74
+<none>              1945.4 487.49
+- ClnZ  1     21.31 1966.7 487.77
+- lnD   1    777.25 2722.7 556.07
+- lnP   1   1306.24 3251.6 593.36
+
+Step:  AIC=485.6
+lnL10 ~ lnZ + lnD + lnP + B + BlnZ + BlnP + ClnZ + ClnD
+
+       Df Sum of Sq    RSS    AIC
+- ClnD  1      2.42 1948.9 483.86
+- BlnZ  1      7.36 1953.8 484.39
+- lnZ   1      8.75 1955.2 484.54
+- BlnP  1     11.10 1957.6 484.79
+- B     1     12.99 1959.5 485.00
+<none>              1946.5 485.60
+- ClnZ  1     20.26 1966.7 485.77
+- lnD   1   1661.53 3608.0 613.20
+- lnP   1   2159.92 4106.4 640.37
+
+Step:  AIC=483.86
+lnL10 ~ lnZ + lnD + lnP + B + BlnZ + BlnP + ClnZ
+
+       Df Sum of Sq    RSS    AIC
+- BlnZ  1      6.26 1955.1 482.53
+- lnZ   1     10.31 1959.2 482.97
+- BlnP  1     11.82 1960.7 483.13
+- B     1     12.00 1960.9 483.15
+<none>              1948.9 483.86
+- ClnZ  1    173.88 2122.8 499.81
+- lnD   1   1677.02 3625.9 612.24
+- lnP   1   2160.93 4109.8 638.55
+
+Step:  AIC=482.53
+lnL10 ~ lnZ + lnD + lnP + B + BlnP + ClnZ
+
+       Df Sum of Sq    RSS    AIC
+- B     1      7.14 1962.3 481.30
+- BlnP  1     11.08 1966.2 481.72
+<none>              1955.1 482.53
+- ClnZ  1    171.77 2126.9 498.22
+- lnZ   1    228.38 2183.5 503.73
+- lnD   1   1727.23 3682.4 613.48
+- lnP   1   2185.03 4140.2 638.09
+
+Step:  AIC=481.3
+lnL10 ~ lnZ + lnD + lnP + BlnP + ClnZ
+
+       Df Sum of Sq    RSS    AIC
+<none>              1962.3 481.30
+- BlnP  1     41.82 2004.1 483.73
+- ClnZ  1    172.20 2134.5 496.96
+- lnZ   1    232.95 2195.2 502.86
+- lnD   1   1803.80 3766.1 616.20
+- lnP   1   2633.16 4595.5 658.00
+> stepw = step(null, scope = list(upper = full), direction = "both")
+Start:  AIC=-30.6
+lnL10 ~ 1
+
+       Df Sum of Sq    RSS     AIC
++ lnP   1    34.773 145.03 -73.727
++ lnD   1     8.822 170.99 -39.160
++ BlnD  1     4.394 175.41 -33.791
+<none>              179.81 -30.596
++ lnZ   1     1.587 178.22 -30.457
++ C     1     0.695 179.11 -29.408
++ ClnZ  1     0.553 179.25 -29.243
++ ClnP  1     0.416 179.39 -29.082
++ ClnD  1     0.369 179.44 -29.026
++ BlnP  1     0.193 179.62 -28.821
++ B     1     0.135 179.67 -28.754
++ BlnZ  1     0.048 179.76 -28.652
+
+Step:  AIC=-73.73
+lnL10 ~ lnP
+
+       Df Sum of Sq    RSS      AIC
++ lnD   1    39.842 105.19 -139.175
++ BlnD  1     6.620 138.41  -81.539
++ lnZ   1     1.553 143.48  -73.988
+<none>              145.03  -73.727
++ BlnZ  1     0.923 144.11  -73.068
++ B     1     0.803 144.23  -72.893
++ BlnP  1     0.527 144.51  -72.492
++ ClnD  1     0.042 144.99  -71.788
++ ClnP  1     0.006 145.03  -71.736
++ C     1     0.005 145.03  -71.734
++ ClnZ  1     0.000 145.03  -71.728
+- lnP   1    34.773 179.81  -30.596
+
+Step:  AIC=-139.17
+lnL10 ~ lnP + lnD
+
+       Df Sum of Sq     RSS      AIC
++ ClnP  1     8.236  96.958 -154.295
++ ClnZ  1     8.080  97.113 -153.958
++ C     1     7.952  97.242 -153.681
++ ClnD  1     7.518  97.675 -152.747
++ lnZ   1     7.113  98.081 -151.877
++ BlnZ  1     6.151  99.042 -149.828
++ BlnP  1     5.153 100.040 -147.723
++ B     1     5.084 100.110 -147.576
++ BlnD  1     4.281 100.912 -145.900
+<none>              105.193 -139.175
+- lnD   1    39.842 145.035  -73.727
+- lnP   1    65.793 170.986  -39.160
+
+Step:  AIC=-154.29
+lnL10 ~ lnP + lnD + ClnP
+
+       Df Sum of Sq     RSS      AIC
++ lnZ   1     5.968  90.990 -165.636
++ BlnZ  1     3.160  93.797 -159.254
++ BlnP  1     2.573  94.385 -157.943
++ B     1     2.238  94.720 -157.198
++ BlnD  1     1.196  95.761 -154.902
+<none>               96.958 -154.295
++ C     1     0.528  96.429 -153.442
++ ClnZ  1     0.059  96.899 -152.423
++ ClnD  1     0.003  96.955 -152.301
+- ClnP  1     8.236 105.193 -139.175
+- lnD   1    48.072 145.029  -71.736
+- lnP   1    73.428 170.386  -37.899
+
+Step:  AIC=-165.64
+lnL10 ~ lnP + lnD + ClnP + lnZ
+
+       Df Sum of Sq     RSS      AIC
++ BlnP  1     0.906  90.084 -165.737
+<none>               90.990 -165.636
++ BlnZ  1     0.788  90.202 -165.463
++ B     1     0.754  90.235 -165.384
++ BlnD  1     0.344  90.646 -164.431
++ C     1     0.224  90.766 -164.153
++ ClnZ  1     0.008  90.981 -163.655
++ ClnD  1     0.001  90.989 -163.637
+- lnZ   1     5.968  96.958 -154.295
+- ClnP  1     7.091  98.081 -151.877
+- lnD   1    52.290 143.280  -72.284
+- lnP   1    76.194 167.184  -39.883
+
+Step:  AIC=-165.74
+lnL10 ~ lnP + lnD + ClnP + lnZ + BlnP
+
+       Df Sum of Sq     RSS      AIC
+<none>               90.084 -165.737
+- BlnP  1     0.906  90.990 -165.636
++ B     1     0.683  89.401 -165.335
++ BlnZ  1     0.264  89.820 -164.354
++ C     1     0.201  89.883 -164.206
++ BlnD  1     0.083  90.001 -163.931
++ ClnD  1     0.006  90.078 -163.751
++ ClnZ  1     0.003  90.081 -163.744
+- lnZ   1     4.301  94.385 -157.943
+- ClnP  1     5.574  95.658 -155.128
+- lnD   1    53.095 143.179  -70.432
+- lnP   1    77.046 167.130  -37.950
+> summary(forw)
+
+Call:
+lm(formula = lnL10 ~ lnP + lnD + ClnP + lnZ + BlnP)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2.36024 -0.41123  0.02573  0.41273  1.78835 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 22.76945    1.60693  14.170  < 2e-16 ***
+lnP         -2.53692    0.19206 -13.209  < 2e-16 ***
+lnD          4.41488    0.40262  10.965  < 2e-16 ***
+ClnP        -0.10893    0.03066  -3.553 0.000473 ***
+lnZ          1.17859    0.37766   3.121 0.002065 ** 
+BlnP         0.02228    0.01555   1.432 0.153606    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.6645 on 204 degrees of freedom
+Multiple R-squared:  0.499,	Adjusted R-squared:  0.4867 
+F-statistic: 40.64 on 5 and 204 DF,  p-value: < 2.2e-16
+
+> summary(back)
+
+Call:
+lm(formula = lnL10 ~ lnZ + lnD + lnP + BlnP + ClnZ, weights = N)
+
+Weighted Residuals:
+    Min      1Q  Median      3Q     Max 
+-8.6622 -2.0509 -0.0315  1.7694  9.2115 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 24.69388    1.50123  16.449  < 2e-16 ***
+lnZ          1.79801    0.36536   4.921 1.77e-06 ***
+lnD          5.14191    0.37549  13.694  < 2e-16 ***
+lnP         -2.89425    0.17493 -16.545  < 2e-16 ***
+BlnP         0.03236    0.01552   2.085   0.0383 *  
+ClnZ        -0.46229    0.10926  -4.231 3.51e-05 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.101 on 204 degrees of freedom
+Multiple R-squared:  0.6021,	Adjusted R-squared:  0.5923 
+F-statistic: 61.74 on 5 and 204 DF,  p-value: < 2.2e-16
+
+> summary(stepw)
+
+Call:
+lm(formula = lnL10 ~ lnP + lnD + ClnP + lnZ + BlnP)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2.36024 -0.41123  0.02573  0.41273  1.78835 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 22.76945    1.60693  14.170  < 2e-16 ***
+lnP         -2.53692    0.19206 -13.209  < 2e-16 ***
+lnD          4.41488    0.40262  10.965  < 2e-16 ***
+ClnP        -0.10893    0.03066  -3.553 0.000473 ***
+lnZ          1.17859    0.37766   3.121 0.002065 ** 
+BlnP         0.02228    0.01555   1.432 0.153606    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.6645 on 204 degrees of freedom
+Multiple R-squared:  0.499,	Adjusted R-squared:  0.4867 
+F-statistic: 40.64 on 5 and 204 DF,  p-value: < 2.2e-16
+
+> 
+> ######Final Model#####
+> summary(back)
+
+Call:
+lm(formula = lnL10 ~ lnZ + lnD + lnP + BlnP + ClnZ, weights = N)
+
+Weighted Residuals:
+    Min      1Q  Median      3Q     Max 
+-8.6622 -2.0509 -0.0315  1.7694  9.2115 
+
+Coefficients:
+            Estimate Std. Error t value Pr(>|t|)    
+(Intercept) 24.69388    1.50123  16.449  < 2e-16 ***
+lnZ          1.79801    0.36536   4.921 1.77e-06 ***
+lnD          5.14191    0.37549  13.694  < 2e-16 ***
+lnP         -2.89425    0.17493 -16.545  < 2e-16 ***
+BlnP         0.03236    0.01552   2.085   0.0383 *  
+ClnZ        -0.46229    0.10926  -4.231 3.51e-05 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 3.101 on 204 degrees of freedom
+Multiple R-squared:  0.6021,	Adjusted R-squared:  0.5923 
+F-statistic: 61.74 on 5 and 204 DF,  p-value: < 2.2e-16
+
+> anova(back)
+Analysis of Variance Table
+
+Response: lnL10
+           Df  Sum Sq Mean Sq  F value    Pr(>F)    
+lnZ         1    0.82    0.82   0.0854  0.770421    
+lnD         1  287.55  287.55  29.8936 1.325e-07 ***
+lnP         1 2427.78 2427.78 252.3914 < 2.2e-16 ***
+BlnP        1   80.91   80.91   8.4114  0.004137 ** 
+ClnZ        1  172.20  172.20  17.9020 3.513e-05 ***
+Residuals 204 1962.29    9.62                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> rst.back = rstudent(back)
+> par(mfrow = c(1,1))
+> hist(rst.back)
+> pureErrorAnova(back)
+Analysis of Variance Table
+
+Response: lnL10
+              Df  Sum Sq Mean Sq  F value    Pr(>F)    
+lnZ            1    0.82    0.82   0.1151  0.735055    
+lnD            1  287.55  287.55  40.3061 5.640e-09 ***
+lnP            1 2427.78 2427.78 340.3038 < 2.2e-16 ***
+BlnP           1   80.91   80.91  11.3413  0.001060 ** 
+ClnZ           1  172.20  172.20  24.1375 3.315e-06 ***
+Residuals    204 1962.29    9.62                       
+ Lack of fit  99 1213.21   12.25   1.7177  0.003295 ** 
+ Pure Error  105  749.08    7.13                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+> vif(back)
+     lnZ      lnD      lnP     BlnP     ClnZ 
+1.672802 9.880358 8.966071 1.542267 1.379378 
